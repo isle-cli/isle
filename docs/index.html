@@ -45,9 +45,9 @@
   pre {
     margin: 0 0 12px;
     padding: 12px 16px;
-    border: 1px solid #c8a13c;
+    border: 1px solid rgba(200,161,60,0.20);
     border-radius: 2px;
-    background: transparent;
+    background: rgba(255,255,255,0.03);
     font-size: 14px;
     line-height: 1.6;
     overflow-x: auto;
@@ -65,13 +65,14 @@
   }
   button:focus { outline: 1px solid #c8a13c; outline-offset: 2px; }
   .mark { display: block; }
+  section { margin: 0 0 64px; }
   .muted { font-size: 14px; margin: 8px 0 0; }
   .divider {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    margin: 56px 0 32px;
-    border-bottom: 1px solid #c8a13c;
+    margin: 44px 0 28px;
+    border-bottom: 1px solid rgba(200,161,60,0.30);
     line-height: 0;
   }
   .label { font-size: 14px; margin: 0 0 12px; }
@@ -79,9 +80,9 @@
     max-width: 520px;
     margin: 0 0 12px;
     padding: 10px 14px;
-    border: 1px solid #c8a13c;
+    border: 1px solid rgba(200,161,60,0.20);
     border-radius: 2px;
-    background: transparent;
+    background: rgba(255,255,255,0.03);
   }
   .turn.user { margin-left: auto; }
   .turn p { margin: 0 0 8px; }
@@ -99,14 +100,14 @@
   th, td {
     text-align: left;
     padding: 8px 16px 8px 0;
-    border-bottom: 1px solid #c8a13c;
+    border-bottom: 1px solid rgba(200,161,60,0.18);
     font-weight: 400;
     vertical-align: baseline;
     color: #e8e4dc;
   }
   th {
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    border-top: 1px solid #c8a13c;
+    border-top: 1px solid rgba(200,161,60,0.35);
   }
   .block { margin: 0 0 24px; }
   .block:last-child { margin-bottom: 0; }
@@ -118,30 +119,18 @@
 <main>
   <header>
     <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
-      <path d="M8 26.5 A16 16 0 0 1 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
       <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
     <h1>Isle</h1>
-    <p>Isle is an MCP server and a CLI that gives an AI agent the ability to launch and trade tokens on Montra, on Elysium: you talk to Claude, ChatGPT, Cursor, or any MCP client in plain language, and the agent calls the tools.</p>
+    <p>Isle is an MCP server and a CLI that gives an AI agent the ability to launch and trade tokens on Montra, on Elysium. You talk to Claude, ChatGPT, Cursor, or any MCP client in plain language, and the agent calls the tools.</p>
     <p class="muted">Early. No users beyond its author. Not yet approved as a Montra builder.</p>
   </header>
-
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
 
   <section>
     <h2>Give your agent a wallet</h2>
     <p>The agent does the clicking. The tools are typed and named, and the key stays in a file on your machine that the agent never sees.</p>
   </section>
-
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
 
   <section>
     <h2>A launch, in conversation</h2>
@@ -170,12 +159,6 @@ token=0x71c0a2…44e8</code></pre>
     </div>
   </section>
 
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
-
   <section>
     <h2>The tools</h2>
     <table>
@@ -192,12 +175,6 @@ token=0x71c0a2…44e8</code></pre>
     </table>
     <p>Every mutating tool takes send, default false.</p>
   </section>
-
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
 
   <section>
     <h2>Install</h2>
@@ -219,12 +196,6 @@ token=0x71c0a2…44e8</code></pre>
     </div>
   </section>
 
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
-
   <section>
     <h2>Rails</h2>
     <ul>
@@ -235,12 +206,6 @@ token=0x71c0a2…44e8</code></pre>
       <li>The key is read from a file.</li>
     </ul>
   </section>
-
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
 
   <section>
     <h2>Limitations</h2>
@@ -253,15 +218,9 @@ token=0x71c0a2…44e8</code></pre>
     </ul>
   </section>
 
-  <div class="divider" aria-hidden="true">
-    <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-  </div>
-
   <footer>
     <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
-      <path d="M8 26.5 A16 16 0 0 1 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
       <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
     <p><a href="https://github.com/isle-cli/isle">github.com/isle-cli/isle</a></p>
@@ -281,3 +240,5 @@ document.querySelectorAll("[data-copy]").forEach(function (button) {
 </script>
 </body>
 </html>
+
+
