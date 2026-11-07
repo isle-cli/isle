@@ -1,0 +1,24 @@
+{
+  "name": "montra-cli",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "montra": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "montra": "node dist/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+
+    "viem": "^2.38.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "typescript": "^5.9.3"
+  }
+}
