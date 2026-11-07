@@ -1,5 +1,7 @@
 # Isle
 
+Docs: https://isle-cli.github.io/isle
+
 A command line tool for launching and trading tokens on Montra, on Elysium (chain 99901).
 
 Montra has a web UI. This is the same thing from a terminal, with the parts that matter for a launch tool done properly: every transaction is simulated before it is sent, hook refusals are unwrapped into readable errors, and the fee breakdown is printed before every buy and sell.

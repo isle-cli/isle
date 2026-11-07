@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isle</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: #0a0a0c;
+    color: #e8e4dc;
+  }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 72px 40px 96px;
+  }
+  h1, h2 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 400;
+    color: #e8e4dc;
+    line-height: 1.2;
+  }
+  h1 { font-size: 48px; margin: 16px 0 12px; }
+  h2 { font-size: 28px; margin: 0 0 16px; }
+  p { margin: 0 0 16px; }
+  a {
+    color: #c8a13c;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  ol, ul { margin: 0; padding-left: 1.25em; }
+  li { margin: 0 0 8px; }
+  code, pre {
+    font-family: Consolas, "Courier New", monospace;
+    color: #e8e4dc;
+  }
+  pre {
+    margin: 0 0 12px;
+    padding: 12px 16px;
+    border: 1px solid #c8a13c;
+    border-radius: 2px;
+    background: transparent;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+  button {
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #e8e4dc;
+    background: transparent;
+    border: 1px solid #c8a13c;
+    border-radius: 2px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  button:focus { outline: 1px solid #c8a13c; outline-offset: 2px; }
+  .mark { display: block; }
+  .divider {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    margin: 56px 0 32px;
+    border-bottom: 1px solid #c8a13c;
+    line-height: 0;
+  }
+  .cmd { margin: 0 0 20px; }
+  .cmd p { margin: 0; }
+  footer { margin-top: 8px; }
+  footer p { margin: 12px 0 0; word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
+      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+    <h1>Isle</h1>
+    <p>Isle is a command line tool for launching and trading tokens on Montra, a launchpad on the Elysium chain, with no users beyond its author and not yet approved as a Montra builder.</p>
+    <pre id="install"><code>git clone https://github.com/isle-cli/isle.git
+cd isle
+npm install
+npm run build</code></pre>
+    <button type="button" id="copy">Copy</button>
+  </header>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <section>
+    <h2>How it works</h2>
+    <ol>
+      <li>Clone the repository and build it.</li>
+      <li>Set a key.</li>
+      <li>Dry run, then send.</li>
+    </ol>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <section>
+    <h2>Commands</h2>
+    <div class="cmd">
+      <pre><code>node dist/index.js configs</code></pre>
+      <p>Lists launch configurations.</p>
+    </div>
+    <div class="cmd">
+      <pre><code>node dist/index.js launch</code></pre>
+      <p>Launches a token.</p>
+    </div>
+    <div class="cmd">
+      <pre><code>node dist/index.js quote</code></pre>
+      <p>Quotes a trade.</p>
+    </div>
+    <div class="cmd">
+      <pre><code>node dist/index.js buy</code></pre>
+      <p>Buys a token.</p>
+    </div>
+    <div class="cmd">
+      <pre><code>node dist/index.js sell</code></pre>
+      <p>Sells a token.</p>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <section>
+    <h2>Safety</h2>
+    <ul>
+      <li>Every transaction is simulated before it is sent.</li>
+      <li><code>--dry-run</code> prints calldata and sends nothing.</li>
+      <li>The chain id is checked.</li>
+    </ul>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <section>
+    <h2>Limitations</h2>
+    <ul>
+      <li><code>firstBuyMinOut</code> is 0, so the first buy of a launch has no slippage floor.</li>
+      <li>Images and metadata go to a third party IPFS service.</li>
+      <li>The default RPC is a single unofficial endpoint.</li>
+      <li>There is no allowance revocation after a trade.</li>
+    </ul>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <footer>
+    <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
+      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+    <p><a href="https://github.com/isle-cli/isle">github.com/isle-cli/isle</a></p>
+    <p><a href="https://montramarkets.xyz/token/0x038bde874365B6B23fa3150D4E359c23eF9bD45A">montramarkets.xyz/token/0x038bde874365B6B23fa3150D4E359c23eF9bD45A</a></p>
+  </footer>
+</main>
+<script>
+document.getElementById("copy").addEventListener("click", function () {
+  var button = this;
+  var text = document.getElementById("install").textContent.trim();
+  navigator.clipboard.writeText(text).then(function () {
+    button.textContent = "Copied";
+  });
+});
+</script>
+</body>
+</html>
