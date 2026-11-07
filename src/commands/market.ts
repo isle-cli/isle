@@ -1,5 +1,6 @@
 import {
   encodeFunctionData,
+  formatUnits,
   parseEventLogs,
   parseUnits,
   zeroAddress,
@@ -55,7 +56,16 @@ export async function loadPool(ctx: Context, token: Address): Promise<{ view: Po
   return { view, poolId };
 }
 
-export async function printFeeBreakdown(ctx: Context, hook: Address, poolId: Hex): Promise<void> {
+export type FeeParts = {
+  total: string;
+  lp: string;
+  protocol: string;
+  creator: string;
+  effectiveTotal: string;
+  line: string;
+};
+
+export async function readFee(ctx: Context, hook: Address, poolId: Hex): Promise<FeeParts> {
   // viem returns multi-output calls as an array, in ABI order:
   // total, lp, protocol, creator, effectiveTotal.
   const fee = (await ctx.client.readContract({
@@ -64,15 +74,29 @@ export async function printFeeBreakdown(ctx: Context, hook: Address, poolId: Hex
     functionName: "feeBreakdown",
     args: [hook, poolId],
   })) as readonly [number, number, number, number, bigint];
-  console.log(
-    [
-      `fee total=${pips(fee[0])}`,
-      `lp=${pips(fee[1])}`,
-      `protocol=${pips(fee[2])}`,
-      `creator=${pips(fee[3])}`,
-      `effectiveTotal=${pips(fee[4])}`,
+  const total = pips(fee[0]);
+  const lp = pips(fee[1]);
+  const protocol = pips(fee[2]);
+  const creator = pips(fee[3]);
+  const effectiveTotal = pips(fee[4]);
+  return {
+    total,
+    lp,
+    protocol,
+    creator,
+    effectiveTotal,
+    line: [
+      `fee total=${total}`,
+      `lp=${lp}`,
+      `protocol=${protocol}`,
+      `creator=${creator}`,
+      `effectiveTotal=${effectiveTotal}`,
     ].join(" "),
-  );
+  };
+}
+
+export async function printFeeBreakdown(ctx: Context, hook: Address, poolId: Hex): Promise<void> {
+  console.log((await readFee(ctx, hook, poolId)).line);
 }
 
 export function zeroForOne(view: PoolView, side: Side): boolean {
@@ -116,6 +140,32 @@ export async function quoteExactIn(
   }
 }
 
+export type QuoteResult = {
+  to: Address;
+  data: Hex;
+  amountOut: bigint;
+  effectiveTotalFee: bigint;
+};
+
+export async function quoteResult(
+  ctx: Context,
+  token: Address,
+  amount: string,
+  side: Side,
+): Promise<QuoteResult> {
+  const { view } = await loadPool(ctx, token);
+  const input = inputCurrency(view, side);
+  const amountIn = parseUnits(amount, await decimalsOf(ctx, input));
+  const direction = zeroForOne(view, side);
+  const amountOut = await quoteExactIn(ctx, view, side, amountIn);
+  const data = encodeFunctionData({
+    abi: routerAbi,
+    functionName: "quoteExactIn",
+    args: [view.key, direction, amountIn],
+  });
+  return { to: ctx.addresses.router, data, amountOut, effectiveTotalFee: view.effectiveTotalFee };
+}
+
 export async function quote(
   ctx: Context,
   token: Address,
@@ -123,34 +173,50 @@ export async function quote(
   side: Side,
   dryRun: boolean,
 ): Promise<void> {
-  const { view } = await loadPool(ctx, token);
-  const input = inputCurrency(view, side);
-  const amountIn = parseUnits(amount, await decimalsOf(ctx, input));
-  const direction = zeroForOne(view, side);
-  const amountOut = await quoteExactIn(ctx, view, side, amountIn);
+  const result = await quoteResult(ctx, token, amount, side);
   if (dryRun) {
-    const data = encodeFunctionData({
-      abi: routerAbi,
-      functionName: "quoteExactIn",
-      args: [view.key, direction, amountIn],
-    });
-    console.log(`to=${ctx.addresses.router}`);
-    console.log(`data=${data}`);
+    console.log(`to=${result.to}`);
+    console.log(`data=${result.data}`);
   }
-  console.log(`amountOut=${amountOut}`);
+  console.log(`amountOut=${result.amountOut}`);
 }
 
-export async function trade(
+export type TradeResult = {
+  fee: FeeParts;
+  poolId: Hex;
+  token: Address;
+  approveTo?: Address;
+  approveData?: Hex;
+  to: Address;
+  value: bigint;
+  data: Hex;
+  minAmountOut: bigint;
+  dryRun: boolean;
+  hash?: Hex;
+  amountOut?: bigint;
+};
+
+export async function runTrade(
   ctx: Context,
   token: Address,
   amount: string,
   side: Side,
   dryRun: boolean,
-): Promise<void> {
+  maxSpendWei?: bigint,
+  onFee?: (line: string) => void,
+  onDryApprove?: (to: Address, data: Hex) => void,
+): Promise<TradeResult> {
   const { view, poolId } = await loadPool(ctx, token);
-  await printFeeBreakdown(ctx, view.key.hooks, poolId);
+  const fee = await readFee(ctx, view.key.hooks, poolId);
+  onFee?.(fee.line);
   const input = inputCurrency(view, side);
   const amountIn = parseUnits(amount, await decimalsOf(ctx, input));
+  const value = input === zeroAddress ? amountIn : 0n;
+  if (maxSpendWei !== undefined && value > maxSpendWei) {
+    throw new Error(
+      `spend of ${formatUnits(value, 18)} HYPE exceeds maxSpendHype ${formatUnits(maxSpendWei, 18)}`,
+    );
+  }
   const quoted = await quoteExactIn(ctx, view, side, amountIn);
   const minAmountOut = (quoted * 99n) / 100n;
   const { account, wallet } = await walletFor(ctx);
@@ -164,8 +230,9 @@ export async function trade(
     recipient: account.address,
     deadline,
   };
-  const value = input === zeroAddress ? amountIn : 0n;
 
+  let approveTo: Address | undefined;
+  let approveData: Hex | undefined;
   if (input !== zeroAddress) {
     const allowance = (await ctx.client.readContract({
       address: input,
@@ -174,11 +241,12 @@ export async function trade(
       args: [account.address, ctx.addresses.router],
     })) as bigint;
     if (allowance < amountIn) {
-      const approveData = encodeFunctionData({
+      approveData = encodeFunctionData({
         abi: tokenAbi,
         functionName: "approve",
         args: [ctx.addresses.router, amountIn],
       });
+      approveTo = input;
       try {
         await ctx.client.simulateContract({
           address: input,
@@ -191,8 +259,7 @@ export async function trade(
         throw new Error(explain(err));
       }
       if (dryRun) {
-        console.log(`approve to=${input}`);
-        console.log(`data=${approveData}`);
+        onDryApprove?.(input, approveData);
       } else {
         const hash = await wallet.writeContract({
           address: input,
@@ -221,11 +288,18 @@ export async function trade(
     throw new Error(explain(err));
   }
   if (dryRun) {
-    console.log(`to=${ctx.addresses.router}`);
-    console.log(`value=${value}`);
-    console.log(`data=${data}`);
-    console.log(`minAmountOut=${minAmountOut}`);
-    return;
+    return {
+      fee,
+      poolId,
+      token,
+      approveTo,
+      approveData,
+      to: ctx.addresses.router,
+      value,
+      data,
+      minAmountOut,
+      dryRun,
+    };
   }
   const hash = await wallet.writeContract({
     address: ctx.addresses.router,
@@ -243,6 +317,47 @@ export async function trade(
     logs: receipt.logs,
   }) as unknown as Array<{ args: { amountOut: bigint } }>;
   const swapped = logs[0];
-  console.log(`hash=${hash}`);
-  if (swapped) console.log(`amountOut=${swapped.args.amountOut}`);
+  return {
+    fee,
+    poolId,
+    token,
+    to: ctx.addresses.router,
+    value,
+    data,
+    minAmountOut,
+    dryRun,
+    hash,
+    amountOut: swapped?.args.amountOut,
+  };
+}
+
+export async function trade(
+  ctx: Context,
+  token: Address,
+  amount: string,
+  side: Side,
+  dryRun: boolean,
+): Promise<void> {
+  const result = await runTrade(
+    ctx,
+    token,
+    amount,
+    side,
+    dryRun,
+    undefined,
+    (line) => console.log(line),
+    (to, data) => {
+      console.log(`approve to=${to}`);
+      console.log(`data=${data}`);
+    },
+  );
+  if (dryRun) {
+    console.log(`to=${result.to}`);
+    console.log(`value=${result.value}`);
+    console.log(`data=${result.data}`);
+    console.log(`minAmountOut=${result.minAmountOut}`);
+    return;
+  }
+  console.log(`hash=${result.hash}`);
+  if (result.amountOut !== undefined) console.log(`amountOut=${result.amountOut}`);
 }

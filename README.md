@@ -36,6 +36,8 @@ node dist/index.js --help
 
 `privateKeyPath` points at a file holding one line, 32 bytes of hex. `builderCode` is your Montra builder code. It is appended to launch calldata as an ERC-8021 attribution suffix, built with ox and placed after the calldata.
 
+`maxSpendHype` is optional and is read only by the MCP server. It is a HYPE amount. A launch or buy whose native value is above it is refused and not sent. When the field is absent the cap is 0.05 HYPE. The CLI does not read this field.
+
 `configs` and `quote` read neither and work without a config.
 
 ## Commands

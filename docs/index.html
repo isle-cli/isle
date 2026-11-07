@@ -36,9 +36,9 @@
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
   }
-  ol, ul { margin: 0; padding-left: 1.25em; }
+  ul { margin: 0; padding-left: 1.25em; }
   li { margin: 0 0 8px; }
-  code, pre {
+  code, pre, .tool {
     font-family: Consolas, "Courier New", monospace;
     color: #e8e4dc;
   }
@@ -65,6 +65,7 @@
   }
   button:focus { outline: 1px solid #c8a13c; outline-offset: 2px; }
   .mark { display: block; }
+  .muted { font-size: 14px; margin: 8px 0 0; }
   .divider {
     display: flex;
     justify-content: center;
@@ -73,8 +74,42 @@
     border-bottom: 1px solid #c8a13c;
     line-height: 0;
   }
-  .cmd { margin: 0 0 20px; }
-  .cmd p { margin: 0; }
+  .label { font-size: 14px; margin: 0 0 12px; }
+  .turn {
+    max-width: 520px;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid #c8a13c;
+    border-radius: 2px;
+    background: transparent;
+  }
+  .turn.user { margin-left: auto; }
+  .turn p { margin: 0 0 8px; }
+  .turn p:last-child { margin-bottom: 0; }
+  .who {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 14px;
+  }
+  .turn pre { margin: 0 0 8px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 16px 8px 0;
+    border-bottom: 1px solid #c8a13c;
+    font-weight: 400;
+    vertical-align: baseline;
+    color: #e8e4dc;
+  }
+  th {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    border-top: 1px solid #c8a13c;
+  }
+  .block { margin: 0 0 24px; }
+  .block:last-child { margin-bottom: 0; }
   footer { margin-top: 8px; }
   footer p { margin: 12px 0 0; word-break: break-all; }
 </style>
@@ -83,81 +118,127 @@
 <main>
   <header>
     <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
-      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M8 26.5 A16 16 0 0 1 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
       <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
     <h1>Isle</h1>
-    <p>Isle is a command line tool for launching and trading tokens on Montra, a launchpad on the Elysium chain, with no users beyond its author and not yet approved as a Montra builder.</p>
-    <pre id="install"><code>git clone https://github.com/isle-cli/isle.git
-cd isle
-npm install
-npm run build</code></pre>
-    <button type="button" id="copy">Copy</button>
+    <p>Isle is an MCP server and a CLI that gives an AI agent the ability to launch and trade tokens on Montra, on Elysium: you talk to Claude, ChatGPT, Cursor, or any MCP client in plain language, and the agent calls the tools.</p>
+    <p class="muted">Early. No users beyond its author. Not yet approved as a Montra builder.</p>
   </header>
 
   <div class="divider" aria-hidden="true">
     <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
   </div>
 
   <section>
-    <h2>How it works</h2>
-    <ol>
-      <li>Clone the repository and build it.</li>
-      <li>Set a key.</li>
-      <li>Dry run, then send.</li>
-    </ol>
+    <h2>Give your agent a wallet</h2>
+    <p>The agent does the clicking. The tools are typed and named, and the key stays in a file on your machine that the agent never sees.</p>
   </section>
 
   <div class="divider" aria-hidden="true">
     <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
   </div>
 
   <section>
-    <h2>Commands</h2>
-    <div class="cmd">
-      <pre><code>node dist/index.js configs</code></pre>
-      <p>Lists launch configurations.</p>
+    <h2>A launch, in conversation</h2>
+    <p class="label">example</p>
+    <div class="turn user">
+      <p class="who">You</p>
+      <p>Launch a token named Harbour, symbol HBR, with a first buy of 0.05 HYPE.</p>
     </div>
-    <div class="cmd">
-      <pre><code>node dist/index.js launch</code></pre>
-      <p>Launches a token.</p>
+    <div class="turn agent">
+      <p class="who">Isle</p>
+      <p>Built the launch. send is false, so nothing is sent.</p>
+      <pre><code>to=factory
+value=launch fee + 0.05 HYPE
+data=0x579ba2d5…</code></pre>
+      <p>Send it?</p>
     </div>
-    <div class="cmd">
-      <pre><code>node dist/index.js quote</code></pre>
-      <p>Quotes a trade.</p>
+    <div class="turn user">
+      <p class="who">You</p>
+      <p>Send it.</p>
     </div>
-    <div class="cmd">
-      <pre><code>node dist/index.js buy</code></pre>
-      <p>Buys a token.</p>
-    </div>
-    <div class="cmd">
-      <pre><code>node dist/index.js sell</code></pre>
-      <p>Sells a token.</p>
+    <div class="turn agent">
+      <p class="who">Isle</p>
+      <p>Sent.</p>
+      <pre><code>hash=0x9a21c4…e17b
+token=0x71c0a2…44e8</code></pre>
     </div>
   </section>
 
   <div class="divider" aria-hidden="true">
     <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
   </div>
 
   <section>
-    <h2>Safety</h2>
+    <h2>The tools</h2>
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Arguments</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="tool">list_configs</td><td>none</td></tr>
+        <tr><td class="tool">quote</td><td>token, amount, side</td></tr>
+        <tr><td class="tool">launch</td><td>name, symbol, desc, image, config, buy, send</td></tr>
+        <tr><td class="tool">buy</td><td>token, amount, send</td></tr>
+        <tr><td class="tool">sell</td><td>token, amount, send</td></tr>
+      </tbody>
+    </table>
+    <p>Every mutating tool takes send, default false.</p>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <section>
+    <h2>Install</h2>
+    <p>The server is built from the repository with <code>npm install &amp;&amp; npm run build</code>, and it is not on npm yet.</p>
+    <div class="block">
+      <pre id="claude"><code>claude mcp add isle -- node dist/mcp.js</code></pre>
+      <button type="button" data-copy="claude">Copy</button>
+    </div>
+    <div class="block">
+      <pre id="clients"><code>{
+  "mcpServers": {
+    "isle": {
+      "command": "node",
+      "args": ["dist/mcp.js"]
+    }
+  }
+}</code></pre>
+      <button type="button" data-copy="clients">Copy</button>
+    </div>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg width="48" height="24" viewBox="0 0 48 24">
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <section>
+    <h2>Rails</h2>
     <ul>
-      <li>Every transaction is simulated before it is sent.</li>
-      <li><code>--dry-run</code> prints calldata and sends nothing.</li>
-      <li>The chain id is checked.</li>
+      <li>Dry run by default.</li>
+      <li>A maxSpendHype cap in the config.</li>
+      <li>Every transaction is simulated first.</li>
+      <li>Refusals are returned as readable text.</li>
+      <li>The key is read from a file.</li>
     </ul>
   </section>
 
   <div class="divider" aria-hidden="true">
     <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
   </div>
 
@@ -168,18 +249,19 @@ npm run build</code></pre>
       <li>Images and metadata go to a third party IPFS service.</li>
       <li>The default RPC is a single unofficial endpoint.</li>
       <li>There is no allowance revocation after a trade.</li>
+      <li>The server is stdio and local only, with no hosted endpoint yet.</li>
     </ul>
   </section>
 
   <div class="divider" aria-hidden="true">
     <svg width="48" height="24" viewBox="0 0 48 24">
-      <path d="M6 24 A18 18 0 0 0 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M6 24 A18 18 0 0 1 42 24" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
   </div>
 
   <footer>
     <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
-      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
+      <path d="M8 26.5 A16 16 0 0 1 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
       <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
     </svg>
     <p><a href="https://github.com/isle-cli/isle">github.com/isle-cli/isle</a></p>
@@ -187,11 +269,13 @@ npm run build</code></pre>
   </footer>
 </main>
 <script>
-document.getElementById("copy").addEventListener("click", function () {
-  var button = this;
-  var text = document.getElementById("install").textContent.trim();
-  navigator.clipboard.writeText(text).then(function () {
-    button.textContent = "Copied";
+document.querySelectorAll("[data-copy]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var id = button.getAttribute("data-copy");
+    var text = document.getElementById(id).textContent.trim();
+    navigator.clipboard.writeText(text).then(function () {
+      button.textContent = "Copied";
+    });
   });
 });
 </script>

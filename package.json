@@ -4,18 +4,21 @@
   "private": true,
   "type": "module",
   "bin": {
-    "montra": "./dist/index.js"
+    "montra": "./dist/index.js",
+    "isle-mcp": "./dist/mcp.js"
   },
   "scripts": {
     "build": "tsc",
-    "montra": "node dist/index.js"
+    "montra": "node dist/index.js",
+    "mcp": "node dist/mcp.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-
-    "viem": "^2.38.3"
+    "@modelcontextprotocol/server": "^2.4.0",
+    "viem": "^2.38.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

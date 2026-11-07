@@ -3,9 +3,9 @@ import { extname } from "node:path";
 import { randomBytes } from "node:crypto";
 import {
   encodeFunctionData,
+  formatUnits,
   parseEventLogs,
   parseUnits,
-  toHex,
   zeroAddress,
   zeroHash,
   type Address,
@@ -49,7 +49,37 @@ async function post(url: string, body: BodyInit, contentType: string): Promise<{
   return { uri: json.uri };
 }
 
-export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
+export type LaunchResult = {
+  dryRun: boolean;
+  approveTo?: Address;
+  approveData?: Hex;
+  to: Address;
+  value: bigint;
+  data: Hex;
+  dataSuffix: Hex;
+  hash?: Hex;
+  token?: Address;
+  poolId?: Hex;
+  firstBuyOut?: bigint;
+};
+
+async function nativeValue(ctx: Context, row: Row, buy: string): Promise<bigint> {
+  const quote = await quoteLabel(ctx, row.quote);
+  const firstBuyAmount = parseUnits(buy, quote.decimals);
+  const launchFee = (await ctx.client.readContract({
+    address: ctx.addresses.factory,
+    abi: factoryAbi,
+    functionName: "launchFee",
+  })) as bigint;
+  return row.quote === zeroAddress ? launchFee + firstBuyAmount : launchFee;
+}
+
+export async function runLaunch(
+  ctx: Context,
+  flags: LaunchFlags,
+  maxSpendWei?: bigint,
+  onDryApprove?: (to: Address, data: Hex) => void,
+): Promise<LaunchResult> {
   const contentType = IMAGE_TYPES[extname(flags.image).toLowerCase()];
   if (!contentType) throw new Error("image must be png, jpeg, webp, or gif");
   const configId = BigInt(flags.config);
@@ -60,6 +90,15 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
     args: [configId],
   })) as Row;
   if (!row.enabled) throw new Error(`config ${configId} is not enabled`);
+
+  if (maxSpendWei !== undefined) {
+    const spend = await nativeValue(ctx, row, flags.buy);
+    if (spend > maxSpendWei) {
+      throw new Error(
+        `spend of ${formatUnits(spend, 18)} HYPE exceeds maxSpendHype ${formatUnits(maxSpendWei, 18)}`,
+      );
+    }
+  }
 
   const imageBytes = await readFile(flags.image);
   const image = await post(`${API}/api/metadata/image`, new Uint8Array(imageBytes), contentType);
@@ -104,7 +143,10 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
   const native = row.quote === zeroAddress;
   const value = native ? launchFee + firstBuyAmount : launchFee;
   const { account, wallet } = await walletFor(ctx);
+  const dataSuffix = Attribution.toDataSuffix({ codes: [ctx.config.builderCode] });
 
+  let approveTo: Address | undefined;
+  let approveData: Hex | undefined;
   if (!native && firstBuyAmount > 0n) {
     const allowance = (await ctx.client.readContract({
       address: row.quote,
@@ -113,11 +155,12 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
       args: [account.address, ctx.addresses.factory],
     })) as bigint;
     if (allowance < firstBuyAmount) {
-      const approveData = encodeFunctionData({
+      approveData = encodeFunctionData({
         abi: tokenAbi,
         functionName: "approve",
         args: [ctx.addresses.factory, firstBuyAmount],
       });
+      approveTo = row.quote;
       try {
         await ctx.client.simulateContract({
           address: row.quote,
@@ -130,8 +173,7 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
         throw new Error(explain(err));
       }
       if (flags.dryRun) {
-        console.log(`approve to=${row.quote}`);
-        console.log(`data=${approveData}`);
+        onDryApprove?.(row.quote, approveData);
       } else {
         const hash = await wallet.writeContract({
           address: row.quote,
@@ -152,9 +194,8 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
       address: ctx.addresses.factory,
       abi: factoryAbi,
       functionName: "launch",
-      
-    args: [params],
-    dataSuffix: Attribution.toDataSuffix({ codes: [ctx.config.builderCode] }),
+      args: [params],
+      dataSuffix,
       value,
       account,
     });
@@ -162,25 +203,19 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
     throw new Error(explain(err));
   }
   if (flags.dryRun) {
-    console.log(`to=${ctx.addresses.factory}`);
-    console.log(`value=${value}`);
-    console.log(`data=${data}`);
-    console.log("dataSuffix=" + Attribution.toDataSuffix({ codes: [ctx.config.builderCode] }));
-    return;
+    return { dryRun: true, approveTo, approveData, to: ctx.addresses.factory, value, data, dataSuffix };
   }
 
   const hash = await wallet.writeContract({
     address: ctx.addresses.factory,
     abi: factoryAbi,
     functionName: "launch",
-    
     args: [params],
-    dataSuffix: Attribution.toDataSuffix({ codes: [ctx.config.builderCode] }),
+    dataSuffix,
     value,
     account,
     chain: ctx.chain,
   });
-  console.log("hash=" + hash);
   const receipt = await ctx.client.waitForTransactionReceipt({ hash });
   const logs = parseEventLogs({
     abi: factoryAbi,
@@ -188,10 +223,38 @@ export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
     logs: receipt.logs,
   }) as unknown as Array<{ args: { token: Address; poolId: Hex; firstBuyOut: bigint } }>;
   const launched = logs[0];
-  if (!launched) throw new Error(`launch mined in ${hash} but TokenLaunched was not in the receipt`);
-  console.log(`token=${launched.args.token}`);
-  console.log(`poolId=${launched.args.poolId}`);
-  console.log(`firstBuyOut=${launched.args.firstBuyOut}`);
+  return {
+    dryRun: false,
+    to: ctx.addresses.factory,
+    value,
+    data,
+    dataSuffix,
+    hash,
+    token: launched?.args.token,
+    poolId: launched?.args.poolId,
+    firstBuyOut: launched?.args.firstBuyOut,
+  };
+}
+
+export async function launch(ctx: Context, flags: LaunchFlags): Promise<void> {
+  const result = await runLaunch(ctx, flags, undefined, (to, data) => {
+    console.log(`approve to=${to}`);
+    console.log(`data=${data}`);
+  });
+  if (result.dryRun) {
+    console.log(`to=${result.to}`);
+    console.log(`value=${result.value}`);
+    console.log(`data=${result.data}`);
+    console.log("dataSuffix=" + result.dataSuffix);
+    return;
+  }
+  console.log("hash=" + result.hash);
+  if (!result.token || !result.poolId || result.firstBuyOut === undefined) {
+    throw new Error(`launch mined in ${result.hash} but TokenLaunched was not in the receipt`);
+  }
+  console.log(`token=${result.token}`);
+  console.log(`poolId=${result.poolId}`);
+  console.log(`firstBuyOut=${result.firstBuyOut}`);
 }
 
 

@@ -71,8 +71,8 @@ async function readNamed(client: PublicClient, key: string): Promise<Address> {
   return address;
 }
 
-export async function loadContext(rpc: string | undefined): Promise<Context> {
-  const config = await loadConfig();
+export async function loadContext(rpc: string | undefined, opts?: { prompt?: boolean }): Promise<Context> {
+  const config = await loadConfig(opts);
   const url = rpc && rpc.length > 0 ? rpc : DEFAULT_RPC;
   const chain = makeChain(url);
   const client = createPublicClient({ chain, transport: http(url) });
