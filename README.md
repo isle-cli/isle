@@ -9,7 +9,8 @@ ABIs are the JSON files from `https://montramarkets.xyz/docs/abis/`, copied into
 ## Install
 
 ```sh
-cd montra-cli
+git clone https://github.com/isle-cli/isle.git
+cd isle
 npm install
 npm run build
 node dist/index.js --help
@@ -107,6 +108,7 @@ Same path as buy, with the token as the input. A sale the hook refuses comes bac
 - The default RPC is a single unofficial endpoint. `--rpc` overrides it.
 - `quote` and `buy` trust the hook's `feeBreakdown`; a hook that lies about its fee is not detected.
 - No allowance revocation after a trade.
+
 
 
 
