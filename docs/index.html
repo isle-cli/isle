@@ -5,147 +5,260 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Isle</title>
 <style>
+  :root {
+    --bg: #0a0a0c;
+    --ink: #e8e4dc;
+    --dim: #8b8780;
+    --gold: #c8a13c;
+    --rule: rgba(200, 161, 60, .16);
+  }
   * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    background: #0a0a0c;
-    color: #e8e4dc;
-  }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
   body {
-    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    font-family: "Segoe UI", system-ui, sans-serif;
     font-size: 16px;
-    line-height: 1.7;
+    line-height: 1.65;
   }
-  main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 72px 40px 96px;
-  }
-  h1, h2 {
-    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    font-weight: 400;
-    color: #e8e4dc;
-    line-height: 1.2;
-  }
-  h1 { font-size: 48px; margin: 16px 0 12px; }
-  h2 { font-size: 28px; margin: 0 0 16px; }
-  p { margin: 0 0 16px; }
-  a {
-    color: #c8a13c;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-  }
-  ul { margin: 0; padding-left: 1.25em; }
-  li { margin: 0 0 8px; }
-  code, pre, .tool {
+  a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  code, pre, .mono, .eyebrow, .num, .who, h2, th, .tool, .brand span, .nav a, button, .mit {
     font-family: Consolas, "Courier New", monospace;
-    color: #e8e4dc;
   }
-  pre {
-    margin: 0 0 12px;
-    padding: 12px 16px;
-    border: 1px solid rgba(200,161,60,0.20);
-    border-radius: 2px;
-    background: rgba(255,255,255,0.03);
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  .bar { border-bottom: 1px solid var(--rule); }
+  .bar .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .brand span {
+    font-size: 12px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+  }
+  .nav a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 22px;
+  }
+  .nav a:hover { color: var(--ink); }
+  main { padding-bottom: 120px; }
+  section { margin-top: 88px; }
+  .hero { margin-top: 72px; }
+  .eyebrow, .num, .who, th {
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--dim);
+    font-weight: 400;
+  }
+  h1 {
+    font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(38px, 6vw, 58px);
+    letter-spacing: -.02em;
+    line-height: 1.06;
+    color: var(--ink);
+    margin: 14px 0 20px;
+  }
+  h1 em { font-style: normal; color: var(--gold); }
+  h2 {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+    margin: 0 0 28px;
+  }
+  p { margin: 0 0 16px; }
+  .lede { max-width: 42em; }
+  .muted { color: var(--dim); margin: 0; }
+  .code {
+    position: relative;
+    background: rgba(255, 255, 255, .03);
+    border-left: 1px solid var(--gold);
+    margin: 0 0 14px;
+  }
+  .code pre {
+    margin: 0;
+    padding: 16px 84px 16px 16px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
     font-size: 14px;
     line-height: 1.6;
-    overflow-x: auto;
+    color: var(--ink);
   }
   button {
-    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
-    font-size: 14px;
-    line-height: 1.4;
-    color: #e8e4dc;
+    position: absolute;
+    top: 8px;
+    right: 10px;
     background: transparent;
-    border: 1px solid #c8a13c;
+    color: var(--dim);
+    border: 0;
     border-radius: 2px;
-    padding: 4px 12px;
+    padding: 4px 0;
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
     cursor: pointer;
   }
-  button:focus { outline: 1px solid #c8a13c; outline-offset: 2px; }
-  .mark { display: block; }
-  section { margin: 0 0 64px; }
-  .muted { font-size: 14px; margin: 8px 0 0; }
-  .divider {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    margin: 44px 0 28px;
-    border-bottom: 1px solid rgba(200,161,60,0.30);
-    line-height: 0;
+  button:hover { color: var(--ink); }
+  button:focus { outline: 1px solid var(--gold); outline-offset: 2px; }
+  .steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
   }
-  .label { font-size: 14px; margin: 0 0 12px; }
-  .turn {
-    max-width: 520px;
-    margin: 0 0 12px;
-    padding: 10px 14px;
-    border: 1px solid rgba(200,161,60,0.20);
-    border-radius: 2px;
-    background: rgba(255,255,255,0.03);
+  .num {
+    display: block;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
   }
-  .turn.user { margin-left: auto; }
-  .turn p { margin: 0 0 8px; }
-  .turn p:last-child { margin-bottom: 0; }
-  .who {
-    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    font-size: 14px;
+  .step p { margin: 0; }
+  .turn { max-width: min(520px, 100%); margin: 0 0 22px; }
+  .turn.agent { border-left: 1px solid var(--rule); padding-left: 16px; }
+  .turn.user {
+    margin-left: auto;
+    border-right: 1px solid var(--gold);
+    padding-right: 16px;
+    text-align: right;
   }
-  .turn pre { margin: 0 0 8px; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0 0 16px;
-  }
+  .who { margin: 0 0 6px; }
+  .turn p { margin: 0; }
+  .turn .code { margin-top: 12px; text-align: left; }
+  .turn .ask { margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 18px; }
   th, td {
     text-align: left;
-    padding: 8px 16px 8px 0;
-    border-bottom: 1px solid rgba(200,161,60,0.18);
+    padding: 11px 16px 11px 0;
+    border-bottom: 1px solid var(--rule);
     font-weight: 400;
     vertical-align: baseline;
-    color: #e8e4dc;
   }
-  th {
-    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    border-top: 1px solid rgba(200,161,60,0.35);
+  .tool { color: var(--gold); }
+  .plain { list-style: none; margin: 0; padding: 0; }
+  .plain li {
+    padding: 11px 0;
+    border-bottom: 1px solid var(--rule);
   }
-  .block { margin: 0 0 24px; }
-  .block:last-child { margin-bottom: 0; }
-  footer { margin-top: 8px; }
-  footer p { margin: 12px 0 0; word-break: break-all; }
+  .foot { border-top: 1px solid var(--rule); }
+  .foot .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding-top: 28px;
+    padding-bottom: 36px;
+  }
+  .foot-links { display: flex; align-items: flex-start; gap: 14px; min-width: 0; }
+  .foot-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .foot-meta a { color: var(--dim); text-decoration: none; overflow-wrap: anywhere; }
+  .foot-links a:hover { color: var(--ink); }
+  .mit {
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  @media (max-width: 640px) {
+    .bar .wrap { height: 48px; padding-left: 16px; padding-right: 16px; }
+    .nav a { margin-left: 14px; }
+    .steps { grid-template-columns: 1fr; gap: 22px; }
+    .foot .wrap { flex-direction: column; align-items: flex-start; padding-left: 16px; padding-right: 16px; }
+    .foot-links { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
-      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
-      <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-    <h1>Isle</h1>
-    <p>Isle is an MCP server and a CLI that gives an AI agent the ability to launch and trade tokens on Montra, on Elysium. You talk to Claude, ChatGPT, Cursor, or any MCP client in plain language, and the agent calls the tools.</p>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg width="26" height="16" viewBox="0 0 48 28" aria-hidden="true">
+        <path d="M8 26.5A16 16 0 0 1 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        <path d="M1 26.5H47" fill="none" stroke="#c8a13c" stroke-width="1" stroke-opacity="0.5" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <span>Isle</span>
+    </a>
+    <nav class="nav">
+      <a href="#how">How</a>
+      <a href="#tools">Tools</a>
+      <a href="https://github.com/isle-cli/isle">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main id="top" class="wrap">
+  <section class="hero">
+    <p class="eyebrow">MCP server · Elysium</p>
+    <h1>Give your agent <em>a&nbsp;wallet.</em></h1>
+    <p class="lede">Isle is an MCP server and a CLI for Claude, Cursor, and ChatGPT. The agent launches and trades tokens on Montra, on Elysium.</p>
     <p class="muted">Early. No users beyond its author. Not yet approved as a Montra builder.</p>
-  </header>
-
-  <section>
-    <h2>Give your agent a wallet</h2>
-    <p>The agent does the clicking. The tools are typed and named, and the key stays in a file on your machine that the agent never sees.</p>
   </section>
 
-  <section>
-    <h2>A launch, in conversation</h2>
-    <p class="label">example</p>
+  <section id="install">
+    <h2>Install</h2>
+    <div class="code">
+      <button type="button" data-copy="clone">Copy</button>
+      <pre id="clone"><code>git clone https://github.com/isle-cli/isle.git
+cd isle
+npm install
+npm run build</code></pre>
+    </div>
+    <div class="code">
+      <button type="button" data-copy="add">Copy</button>
+      <pre id="add"><code>claude mcp add isle -- node dist/mcp.js</code></pre>
+    </div>
+    <p class="muted">Not on npm yet. The key stays in a file on your machine.</p>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="num">01</span>
+        <p>Clone the repository and build it.</p>
+      </div>
+      <div class="step">
+        <span class="num">02</span>
+        <p>Set a key and a spend cap.</p>
+      </div>
+      <div class="step">
+        <span class="num">03</span>
+        <p>Ask your agent and it dry runs first.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="conversation">
+    <h2>In conversation</h2>
     <div class="turn user">
       <p class="who">You</p>
       <p>Launch a token named Harbour, symbol HBR, with a first buy of 0.05 HYPE.</p>
     </div>
     <div class="turn agent">
       <p class="who">Isle</p>
-      <p>Built the launch. send is false, so nothing is sent.</p>
-      <pre><code>to=factory
-value=launch fee + 0.05 HYPE
+      <p>Built the launch. send is false.</p>
+      <div class="code">
+        <pre><code>to=0x…
+value=…
 data=0x579ba2d5…</code></pre>
-      <p>Send it?</p>
+      </div>
+      <p class="ask">Send it?</p>
     </div>
     <div class="turn user">
       <p class="who">You</p>
@@ -154,13 +267,15 @@ data=0x579ba2d5…</code></pre>
     <div class="turn agent">
       <p class="who">Isle</p>
       <p>Sent.</p>
-      <pre><code>hash=0x9a21c4…e17b
+      <div class="code">
+        <pre><code>hash=0x9a21c4…e17b
 token=0x71c0a2…44e8</code></pre>
+      </div>
     </div>
   </section>
 
-  <section>
-    <h2>The tools</h2>
+  <section id="tools">
+    <h2>Tools</h2>
     <table>
       <thead>
         <tr><th>Tool</th><th>Arguments</th></tr>
@@ -168,7 +283,7 @@ token=0x71c0a2…44e8</code></pre>
       <tbody>
         <tr><td class="tool">list_configs</td><td>none</td></tr>
         <tr><td class="tool">quote</td><td>token, amount, side</td></tr>
-        <tr><td class="tool">launch</td><td>name, symbol, desc, image, config, buy, send</td></tr>
+        <tr><td class="tool">launch</td><td>name, symbol, desc, image_path, config_id, buy, send</td></tr>
         <tr><td class="tool">buy</td><td>token, amount, send</td></tr>
         <tr><td class="tool">sell</td><td>token, amount, send</td></tr>
       </tbody>
@@ -176,63 +291,49 @@ token=0x71c0a2…44e8</code></pre>
     <p>Every mutating tool takes send, default false.</p>
   </section>
 
-  <section>
-    <h2>Install</h2>
-    <p>The server is built from the repository with <code>npm install &amp;&amp; npm run build</code>, and it is not on npm yet.</p>
-    <div class="block">
-      <pre id="claude"><code>claude mcp add isle -- node dist/mcp.js</code></pre>
-      <button type="button" data-copy="claude">Copy</button>
-    </div>
-    <div class="block">
-      <pre id="clients"><code>{
-  "mcpServers": {
-    "isle": {
-      "command": "node",
-      "args": ["dist/mcp.js"]
-    }
-  }
-}</code></pre>
-      <button type="button" data-copy="clients">Copy</button>
-    </div>
-  </section>
-
-  <section>
+  <section id="rails">
     <h2>Rails</h2>
-    <ul>
+    <ul class="plain">
       <li>Dry run by default.</li>
-      <li>A maxSpendHype cap in the config.</li>
+      <li>A maxSpendHype cap.</li>
       <li>Every transaction is simulated first.</li>
-      <li>Refusals are returned as readable text.</li>
+      <li>Refusals come back as readable text.</li>
       <li>The key is read from a file.</li>
     </ul>
   </section>
 
-  <section>
+  <section id="limitations">
     <h2>Limitations</h2>
-    <ul>
-      <li><code>firstBuyMinOut</code> is 0, so the first buy of a launch has no slippage floor.</li>
+    <ul class="plain">
+      <li><code>firstBuyMinOut</code> is 0, so a first buy has no slippage floor.</li>
       <li>Images and metadata go to a third party IPFS service.</li>
-      <li>The default RPC is a single unofficial endpoint.</li>
-      <li>There is no allowance revocation after a trade.</li>
-      <li>The server is stdio and local only, with no hosted endpoint yet.</li>
+      <li>One unofficial RPC by default.</li>
+      <li>No allowance revocation after a trade.</li>
+      <li>Stdio and local only.</li>
     </ul>
   </section>
-
-  <footer>
-    <svg class="mark" width="48" height="28" viewBox="0 0 48 28" aria-hidden="true">
-      <path d="M8 26.5 A16 16 0 0 0 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1"/>
-      <path d="M1 26.5 H47" fill="none" stroke="#c8a13c" stroke-width="1"/>
-    </svg>
-    <p><a href="https://github.com/isle-cli/isle">github.com/isle-cli/isle</a></p>
-    <p><a href="https://montramarkets.xyz/token/0x038bde874365B6B23fa3150D4E359c23eF9bD45A">montramarkets.xyz/token/0x038bde874365B6B23fa3150D4E359c23eF9bD45A</a></p>
-  </footer>
 </main>
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-links">
+      <svg width="20" height="12" viewBox="0 0 48 28" aria-hidden="true">
+        <path d="M8 26.5A16 16 0 0 1 40 26.5" fill="none" stroke="#c8a13c" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        <path d="M1 26.5H47" fill="none" stroke="#c8a13c" stroke-width="1" stroke-opacity="0.5" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="foot-meta">
+        <a href="https://github.com/isle-cli/isle">github.com/isle-cli/isle</a>
+        <a href="https://montramarkets.xyz/token/0x038bde874365B6B23fa3150D4E359c23eF9bD45A">montramarkets.xyz/token/0x038bde874365B6B23fa3150D4E359c23eF9bD45A</a>
+      </div>
+    </div>
+    <span class="mit">MIT</span>
+  </div>
+</footer>
 <script>
 document.querySelectorAll("[data-copy]").forEach(function (button) {
   button.addEventListener("click", function () {
     var id = button.getAttribute("data-copy");
-    var text = document.getElementById(id).textContent.trim();
-    navigator.clipboard.writeText(text).then(function () {
+    var value = document.getElementById(id).textContent.trim();
+    navigator.clipboard.writeText(value).then(function () {
       button.textContent = "Copied";
     });
   });
@@ -240,5 +341,3 @@ document.querySelectorAll("[data-copy]").forEach(function (button) {
 </script>
 </body>
 </html>
-
-

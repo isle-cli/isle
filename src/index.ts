@@ -2,6 +2,7 @@
 import { parseArgs } from "node:util";
 import { isAddress, type Address } from "viem";
 import { CHAIN_ID, DEFAULT_RPC, loadContext } from "./chain.js";
+import { bundle } from "./commands/bundle.js";
 import { configs } from "./commands/configs.js";
 import { launch } from "./commands/launch.js";
 import { quote, trade, type Side } from "./commands/market.js";
@@ -28,10 +29,20 @@ function help(): void {
   montra launch --name --symbol --desc --image --config ID --buy AMOUNT [--rpc URL] [--dry-run]
   montra quote --token ADDR --amount AMOUNT --side buy|sell [--rpc URL] [--dry-run]
   montra buy --token ADDR --amount AMOUNT [--rpc URL] [--dry-run]
-  montra sell --token ADDR --amount AMOUNT [--rpc URL] [--dry-run]`);
+  montra sell --token ADDR --amount AMOUNT [--rpc URL] [--dry-run]
+  montra bundle --new
+  montra bundle plan --wallets N --buy AMOUNT [--rpc URL] [--dry-run] [--force]
+  montra bundle fund --wallets N --buy AMOUNT [--rpc URL] [--dry-run] [--force]
+  montra bundle launch --wallets N --buy AMOUNT --name --symbol --desc --image --config ID [--rpc URL] [--dry-run] [--force]
+  montra bundle status --wallets N [--token ADDR] [--rpc URL] [--dry-run]
+  montra bundle sweep --wallets N --token ADDR [--rpc URL] [--dry-run] [--force]`);
 }
 
 async function main(): Promise<void> {
+  if (process.argv[2] === "bundle") {
+    await bundle(process.argv.slice(3));
+    return;
+  }
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
     options: {

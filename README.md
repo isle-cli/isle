@@ -36,9 +36,11 @@ node dist/index.js --help
 
 `privateKeyPath` points at a file holding one line, 32 bytes of hex. `builderCode` is your Montra builder code. It is appended to launch calldata as an ERC-8021 attribution suffix, built with ox and placed after the calldata.
 
-`maxSpendHype` is optional and is read only by the MCP server. It is a HYPE amount. A launch or buy whose native value is above it is refused and not sent. When the field is absent the cap is 0.05 HYPE. The CLI does not read this field.
+`maxSpendHype` is optional. It is a HYPE amount. When the field is absent the cap is 0.05 HYPE. The MCP server refuses a launch or buy whose native value is above it. `bundle` refuses when its total spend is above it, unless `--force` is passed. `configs`, `quote`, `launch`, `buy` and `sell` do not read this field.
 
-`configs` and `quote` read neither and work without a config.
+`mnemonicPath` is optional and is read only by `bundle`. It points at a BIP-39 mnemonic file. `bundle --new` generates a 12-word phrase with `generateMnemonic` and writes that file with mode `0600`. On Linux, macOS and WSL, run `chmod 600` on the file and check the mode. On Windows, mode `0600` does not keep other users out. Restrict the file to your account. Anyone who can read it can spend the bundle wallets. Wallet index 0 is never derived and never used. The main key in `privateKeyPath` is not an account of this mnemonic.
+
+`configs` and `quote` read neither key and work without a config.
 
 ## Commands
 
@@ -92,6 +94,31 @@ node dist/index.js sell --token 0x626d3d7317cd43eaf1e4963fd0ad058684232d35 --amo
 
 Same path as buy, with the token as the input. A sale the hook refuses comes back as `PastOpening` or `PartialFillRejected` after the wrappers are peeled off. A minimum the quote no longer clears comes back as `TooLittleReceived`.
 
+### bundle
+
+The bundle is a separate set of wallets. Index 0 on the mnemonic is never derived. Indexes `1..N` come from `mnemonicToAccount(mnemonic, { addressIndex: i })`. `--wallets` is capped at 30. The main key only sends the funding transfers.
+
+```sh
+node dist/index.js bundle --new
+node dist/index.js bundle plan --wallets 3 --buy 0.002 --dry-run
+node dist/index.js bundle fund --wallets 3 --buy 0.002
+node dist/index.js bundle launch --wallets 3 --buy 0.002 --name Example --symbol EXMPL --desc "What it is." --image ./logo.png --config 0
+node dist/index.js bundle status --wallets 3 --token 0xTOKEN
+node dist/index.js bundle sweep --wallets 3 --token 0xTOKEN
+```
+
+Fund, then launch. `plan` prints each derived address, `fundingTotal` as `N × (buy + gas estimate)`, and `shortfall` against the main wallet. The shortfall also counts `launchFee` and the gas of the funding transfers, both printed on their own lines. `fund` sends `buy` plus that gas float to every derived wallet, and adds `launchFee` to wallet 1, because wallet 1 pays it. It waits for the receipts, prints each balance, and exits non-zero if any wallet is short.
+
+`launch` sends the launch from wallet 1. The priority fee is `baseFee * 2`. Buys from wallets `2..N` use `baseFee * 1.5`. A buy reverts if the pool does not exist, so the command waits for the launch receipt, waits 400ms, takes a fresh quote, signs every buy, and only then sends them. Signing is finished before the first buy goes out, so signing does not stagger the burst.
+
+Same block is attempted, not guaranteed. The buys are sent together so they can share a block. The chain can still order them apart or put them in later blocks. The launch itself is already mined before that burst.
+
+After the burst, every receipt is polled for up to 30 seconds. The summary table has one row per wallet: status, amount out, or the revert reason. A reverted buy, or one that never left the machine, is retried once. A buy that is still pending when the 30 seconds run out is not sent again. No wallet is left out of the table.
+
+`sweep` sells each wallet's balance of `--token`, with 400ms between sends, and prints the same table. `status` prints the address, the HYPE balance, and the token balance when `--token` is set.
+
+A failed launch simulation is not sent. A wallet under its gas floor stops the command before any send. Spend above `maxSpendHype` stops it too, unless `--force` is passed. `--dry-run` sends nothing. A dry-run launch still uploads metadata, same as `launch`, because the URI is inside the calldata. Progress is printed on stderr. The facts and the table are stdout.
+
 ## Safety
 
 - `--dry-run` prints the full calldata and sends nothing. A dry run launch still uploads the image and metadata, because those URIs are fields of the calldata.
@@ -127,6 +154,10 @@ Same path as buy, with the token as the input. A sale the hook refuses comes bac
 | `eth_getBlock` | Deadline is the block timestamp plus 300 seconds. |
 | `approve` simulation | Required before an approve is sent. |
 | `launch` / `swapExactIn` simulation | Required before either transaction is sent. |
+| `eth_getBalance` | Bundle funding, status, and the gas-floor check. |
+| `eth_getTransactionCount` | Nonce for each pre-signed bundle buy. |
+| `factory.launchFee` | Added to wallet 1's funding and to the launch value. |
+| `token.balanceOf` | Bundle status and sweep. |
 
 ## Limitations
 

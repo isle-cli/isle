@@ -7,8 +7,10 @@ import { stdin as input, stdout as output } from "node:process";
 export type Config = {
   privateKeyPath: string;
   builderCode: string;
-  /** HYPE cap used by the MCP server. Absent in the file means 0.05. */
+  /** HYPE cap used by the MCP server and by bundle. Absent in the file means 0.05. */
   maxSpendHype: number;
+  /** Bundle mnemonic file. Absent until `bundle --new` or the user sets it. */
+  mnemonicPath?: string;
 };
 
 const DEFAULT_MAX_SPEND_HYPE = 0.05;
@@ -25,6 +27,10 @@ export function configPath(): string {
   return join(homedir(), ".montra", "config.json");
 }
 
+export function defaultMnemonicPath(): string {
+  return join(homedir(), ".montra", "mnemonic");
+}
+
 export async function loadConfig(opts?: { prompt?: boolean }): Promise<Config> {
   const path = configPath();
   try {
@@ -33,14 +39,21 @@ export async function loadConfig(opts?: { prompt?: boolean }): Promise<Config> {
       privateKeyPath?: unknown;
       builderCode?: unknown;
       maxSpendHype?: unknown;
+      mnemonicPath?: unknown;
     };
     if (typeof parsed.privateKeyPath !== "string" || typeof parsed.builderCode !== "string") {
       throw new Error(`${path} must contain privateKeyPath and builderCode`);
+    }
+    if (parsed.mnemonicPath !== undefined && typeof parsed.mnemonicPath !== "string") {
+      throw new Error(`${path} mnemonicPath must be a file path`);
     }
     return {
       privateKeyPath: parsed.privateKeyPath,
       builderCode: parsed.builderCode,
       maxSpendHype: parseMaxSpendHype(parsed.maxSpendHype),
+      mnemonicPath: typeof parsed.mnemonicPath === "string" && parsed.mnemonicPath.length > 0
+        ? parsed.mnemonicPath
+        : undefined,
     };
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
@@ -62,6 +75,14 @@ export async function loadConfig(opts?: { prompt?: boolean }): Promise<Config> {
   } finally {
     rl.close();
   }
+}
+
+/** Record mnemonicPath without dropping the other config keys. */
+export async function rememberMnemonicPath(mnemonicPath: string): Promise<void> {
+  const path = configPath();
+  const parsed = JSON.parse(await readFile(path, "utf8")) as Record<string, unknown>;
+  parsed.mnemonicPath = mnemonicPath;
+  await writeFile(path, JSON.stringify(parsed, null, 2) + "\n", "utf8");
 }
 
 export async function readPrivateKey(path: string): Promise<`0x${string}`> {
